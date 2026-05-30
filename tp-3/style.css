@@ -29,5 +29,5 @@ body p.fuente.parrafo{
 }
 .complicado{
     font-weight: bold;
-    color: #C62;
+    color: #C62 !important;
 }
