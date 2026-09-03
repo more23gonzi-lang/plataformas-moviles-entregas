@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Lista de Compras - DOM y JavaScript</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+        integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT"
+        crossorigin="anonymous">
+</head>
+
+<body>
+
+    <div class="container my-1 my-sm-2 my-md-4 my-lg-5">
+
+        <h1>Lista de Compras</h1>
+
+        <div class="card">
+            <div class="card-body">
+
+                <h2>Listado de Productos</h2>
+
+                <ul id="lista-productos">
+                    <li>Pan</li>
+                </ul>
+
+                <hr class="hr">
+
+                <h2>Agregar Producto</h2>
+
+                <form id="form-producto">
+
+                    <div class="input-group mb-3">
+
+                        <input type="text"
+                            class="form-control"
+                            aria-label="Nombre del Producto"
+                            placeholder="Ingrese un producto">
+
+                        <button class="btn btn-primary" type="submit">
+                            Agregar Producto
+                        </button>
+
+                    </div>
+
+                </form>
+
+                <div class="mt-3">
+
+                    <button id="ordenar" class="btn btn-secondary">
+                        Ordenar A-Z
+                    </button>
+
+                    <button id="limpiar" class="btn btn-danger">
+                        Limpiar Lista
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+
+    <script>
+
+       
+        const lista = document.querySelector("#lista-productos");
+        const formulario = document.querySelector("#form-producto");
+        const botonOrdenar = document.querySelector("#ordenar");
+        const botonLimpiar = document.querySelector("#limpiar");
+
+
+        
+        function agregarProducto(nombreProducto) {
+
+           
+            if (nombreProducto.trim() === "") {
+                return;
+            }
+
+          
+            const producto = document.createElement("li");
+
+            producto.className = "mb-2";
+
+
+            
+            const texto = document.createElement("span");
+
+            texto.textContent = nombreProducto;
+
+
+            
+            const botonComprado = document.createElement("button");
+
+            botonComprado.textContent = "Comprado";
+
+            botonComprado.className = "btn btn-success btn-sm ms-2";
+
+
+           
+            botonComprado.addEventListener("click", function () {
+
+                if (texto.style.textDecoration === "line-through") {
+
+                    texto.style.textDecoration = "none";
+
+                } else {
+
+                    texto.style.textDecoration = "line-through";
+
+                }
+
+                guardarLista();
+            });
+
+
+            
+            const botonEditar = document.createElement("button");
+
+            botonEditar.textContent = "Editar";
+
+            botonEditar.className = "btn btn-warning btn-sm ms-2";
+
+
+            botonEditar.addEventListener("click", function () {
+
+                const nuevoNombre = prompt(
+                    "Ingrese el nuevo nombre del producto:",
+                    texto.textContent
+                );
+
+                if (nuevoNombre !== null && nuevoNombre.trim() !== "") {
+
+                    texto.textContent = nuevoNombre;
+
+                    guardarLista();
+
+                }
+
+            });
+
+
+           
+            const botonEliminar = document.createElement("button");
+
+            botonEliminar.textContent = "Eliminar";
+
+            botonEliminar.className = "btn btn-danger btn-sm ms-2";
+
+
+            botonEliminar.addEventListener("click", function () {
+
+                producto.remove();
+
+                guardarLista();
+
+            });
+
+
+           
+            producto.appendChild(texto);
+            producto.appendChild(botonComprado);
+            producto.appendChild(botonEditar);
+            producto.appendChild(botonEliminar);
+
+
+           
+            lista.appendChild(producto);
+
+
+            
+            guardarLista();
+        }
+
+
+        
+        function ordenarProductos() {
+
+            const productos = Array.from(lista.children);
+
+            productos.sort(function (a, b) {
+
+                const nombreA = a.querySelector("span").textContent.toLowerCase();
+                const nombreB = b.querySelector("span").textContent.toLowerCase();
+
+                return nombreA.localeCompare(nombreB);
+
+            });
+
+
+           
+            productos.forEach(function (producto) {
+
+                lista.appendChild(producto);
+
+            });
+
+            guardarLista();
+        }
+
+
+        
+        function limpiarLista() {
+
+            lista.innerHTML = "";
+
+            guardarLista();
+
+        }
+
+
+       
+        function guardarLista() {
+
+            const productos = [];
+
+            lista.querySelectorAll("li").forEach(function (producto) {
+
+                const texto = producto.querySelector("span");
+
+                productos.push({
+
+                    nombre: texto.textContent,
+
+                    comprado: texto.style.textDecoration === "line-through"
+
+                });
+
+            });
+
+
+            localStorage.setItem(
+                "listaCompras",
+                JSON.stringify(productos)
+            );
+
+        }
+
+
+       
+        function cargarLista() {
+
+            const productosGuardados =
+                localStorage.getItem("listaCompras");
+
+
+           
+            if (productosGuardados === null) {
+
+                return;
+
+            }
+
+
+            
+            lista.innerHTML = "";
+
+
+            const productos =
+                JSON.parse(productosGuardados);
+
+
+          
+            productos.forEach(function (producto) {
+
+                agregarProducto(producto.nombre);
+
+                const ultimoProducto =
+                    lista.lastElementChild;
+
+                const texto =
+                    ultimoProducto.querySelector("span");
+
+
+                if (producto.comprado) {
+
+                    texto.style.textDecoration = "line-through";
+
+                }
+
+            });
+
+        }
+
+
+       
+        formulario.addEventListener("submit", function (evento) {
+
+            evento.preventDefault();
+
+            const input = formulario.querySelector("input");
+
+            const nombreProducto = input.value;
+
+            input.value = "";
+
+            agregarProducto(nombreProducto);
+
+        });
+
+
+       
+        botonOrdenar.addEventListener("click", function () {
+
+            ordenarProductos();
+
+        });
+
+
+       
+        botonLimpiar.addEventListener("click", function () {
+
+            limpiarLista();
+
+        });
+
+
+       
+        cargarLista();
+
+    </script>
+
+</body>
+</html>
