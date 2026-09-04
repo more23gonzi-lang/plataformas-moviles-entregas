@@ -1,0 +1,428 @@
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Mi Pokédex</title>
+
+  
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <style>
+
+        body {
+            background-color: #f2f2f2;
+            font-family: Arial, sans-serif;
+        }
+
+        header {
+            background-color: #dc3545;
+            color: white;
+            text-align: center;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 40px;
+            font-weight: bold;
+        }
+
+        .card {
+            height: 100%;
+            text-align: center;
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .card img {
+            width: 150px;
+            height: 150px;
+            object-fit: contain;
+            margin: 15px auto;
+        }
+
+        .card-title {
+            text-transform: capitalize;
+            font-weight: bold;
+        }
+
+        .tipo {
+            display: inline-block;
+            background-color: #6c757d;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            margin: 3px;
+            font-size: 14px;
+        }
+
+        .pokemon-modal-img {
+            display: block;
+            width: 180px;
+            height: 180px;
+            object-fit: contain;
+            margin: 0 auto 20px;
+        }
+
+        #modal-title {
+            text-transform: capitalize;
+        }
+
+        #modal-types,
+        #modal-abilities {
+            text-transform: capitalize;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+ 
+    <header>
+
+        <h1>Pokédex</h1>
+
+        <p class="mb-0">
+            Información de los Pokémon
+        </p>
+
+    </header>
+
+
+    <main class="container">
+
+    
+        <div id="loading" class="text-center my-5">
+
+            <div
+                class="spinner-border text-danger"
+                role="status"
+            ></div>
+
+            <p class="mt-2">
+                Cargando Pokémon...
+            </p>
+
+        </div>
+
+
+      
+        <div id="pokemon-list" class="row g-4"></div>
+
+
+       
+        <div class="text-center my-5">
+
+            <button
+                id="load-more"
+                class="btn btn-danger"
+            >
+                Cargar más Pokémon
+            </button>
+
+        </div>
+
+    </main>
+
+    <div
+        class="modal fade"
+        id="pokemonModal"
+        tabindex="-1"
+    >
+
+        <div class="modal-dialog">
+
+            <div class="modal-content">
+
+                <div class="modal-header">
+
+                    <h5
+                        id="modal-title"
+                        class="modal-title"
+                    ></h5>
+
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                    ></button>
+
+                </div>
+
+
+                <div class="modal-body">
+
+                    <img
+                        id="modal-image"
+                        class="pokemon-modal-img"
+                        src=""
+                        alt=""
+                    >
+
+
+                    <p>
+                        <strong>Tipos:</strong>
+                        <span id="modal-types"></span>
+                    </p>
+
+
+                    <p>
+                        <strong>Habilidades:</strong>
+                        <span id="modal-abilities"></span>
+                    </p>
+
+
+                    <p>
+                        <strong>Movimientos:</strong>
+                    </p>
+
+
+                    <ul id="modal-moves"></ul>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+    </script>
+
+
+    <script>
+
+        const listaPokemon =
+            document.getElementById("pokemon-list");
+
+        const loading =
+            document.getElementById("loading");
+
+        const botonMas =
+            document.getElementById("load-more");
+
+
+        let cantidad = 151;
+
+        async function cargarPokemon() {
+
+            loading.style.display = "block";
+
+            try {
+
+                const respuesta = await fetch(
+                    `https://pokeapi.co/api/v2/pokemon?limit=${cantidad}`
+                );
+
+                const datos = await respuesta.json();
+
+
+                listaPokemon.innerHTML = "";
+
+
+                for (let pokemon of datos.results) {
+
+                    const respuestaPokemon =
+                        await fetch(pokemon.url);
+
+                    const datosPokemon =
+                        await respuestaPokemon.json();
+
+
+                    mostrarPokemon(datosPokemon);
+
+                }
+
+            } catch (error) {
+
+                listaPokemon.innerHTML = `
+                    <div class="alert alert-danger text-center">
+                        Ocurrió un error al cargar los Pokémon.
+                    </div>
+                `;
+
+            }
+
+
+            loading.style.display = "none";
+
+        }
+
+        function mostrarPokemon(pokemon) {
+
+            let tipos = "";
+
+
+            pokemon.types.forEach(tipo => {
+
+                tipos += `
+                    <span class="tipo">
+                        ${tipo.type.name}
+                    </span>
+                `;
+
+            });
+
+            const tarjeta =
+                document.createElement("div");
+
+
+            tarjeta.classList.add(
+                "col-12",
+                "col-sm-6",
+                "col-md-4",
+                "col-lg-3"
+            );
+
+
+            tarjeta.innerHTML = `
+
+                <div class="card">
+
+                    <img
+                        src="${pokemon.sprites.front_default}"
+                        alt="${pokemon.name}"
+                    >
+
+                    <div class="card-body">
+
+                        <h5 class="card-title">
+                            ${pokemon.name}
+                        </h5>
+
+                        <div>
+                            ${tipos}
+                        </div>
+
+                        <button
+                            class="btn btn-primary mt-3"
+                            onclick="verPokemon(${pokemon.id})"
+                        >
+                            Ver más
+                        </button>
+
+                    </div>
+
+                </div>
+
+            `;
+
+            listaPokemon.appendChild(tarjeta);
+
+        }
+
+        async function verPokemon(id) {
+
+            const respuesta = await fetch(
+                `https://pokeapi.co/api/v2/pokemon/${id}`
+            );
+
+
+            const pokemon =
+                await respuesta.json();
+
+
+            document.getElementById("modal-title").textContent =
+                pokemon.name;
+
+
+            document.getElementById("modal-image").src =
+                pokemon.sprites.front_default;
+
+
+            let tipos = "";
+
+            pokemon.types.forEach(tipo => {
+
+                tipos += tipo.type.name + " ";
+
+            });
+
+
+            document.getElementById("modal-types").textContent =
+                tipos;
+
+            let habilidades = "";
+
+            pokemon.abilities.forEach(habilidad => {
+
+                habilidades +=
+                    habilidad.ability.name + " ";
+
+            });
+
+
+            document.getElementById("modal-abilities").textContent =
+                habilidades;
+
+
+            const listaMovimientos =
+                document.getElementById("modal-moves");
+
+
+            listaMovimientos.innerHTML = "";
+
+
+            for (
+                let i = 0;
+                i < 4 && i < pokemon.moves.length;
+                i++
+            ) {
+
+                const movimiento =
+                    document.createElement("li");
+
+
+                movimiento.textContent =
+                    pokemon.moves[i].move.name;
+
+
+                listaMovimientos.appendChild(movimiento);
+
+            }
+
+
+            const modal =
+                new bootstrap.Modal(
+                    document.getElementById("pokemonModal")
+                );
+
+
+            modal.show();
+
+        }
+
+        botonMas.addEventListener(
+            "click",
+            async function() {
+
+                cantidad += 20;
+
+                await cargarPokemon();
+
+            }
+        );
+
+        cargarPokemon();
+
+    </script>
+
+</body>
+
+</html>
+```
